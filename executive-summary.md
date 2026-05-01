@@ -1,52 +1,91 @@
 # Executive Summary
 
+## Project
+
+**The Resilient Growth Opportunities Fund** is a quantitative finance project focused on building and evaluating a diversified multi-asset portfolio using constrained mean-variance optimization.
+
+The strategy combines U.S. financial equities, emerging markets, gold, energy, and a capped Bitcoin allocation to create a portfolio with multiple return drivers across different macroeconomic regimes.
+
 ## Objective
 
-This project analyzes portfolio risk and return behavior using quantitative finance and statistical methods.
+The goal of the project is to design a portfolio that balances long-term growth potential with macro resilience, diversification, and disciplined risk control.
 
-The main goal is to understand how risk measures, modeling assumptions, and historical financial data can shape conclusions about portfolio construction, volatility, diversification, and downside exposure.
+Rather than simply maximizing the unconstrained Sharpe ratio, the project applies practical constraints to produce a more stable and implementable allocation.
 
-## Motivation
+## Portfolio Construction
 
-Investment decisions often rely on simplifying assumptions about returns, volatility, correlations, and market behavior. These assumptions can be useful, but they can also break down during periods of stress.
+The final portfolio uses five assets:
 
-This project examines quantitative risk analysis as a tool for understanding portfolio behavior while also recognizing the limits of model-based conclusions.
+- **JPM** – primary U.S. equity and financials growth anchor
+- **GLD** – defensive real asset exposure
+- **XOM** – energy and commodity-cycle exposure
+- **EEM** – emerging markets diversification
+- **BTC-USD** – capped convex upside exposure
 
-## Analytical Focus
+The final constrained allocation is:
 
-The project focuses on questions such as:
+- **JPM:** 57.85%
+- **GLD:** 27.15%
+- **XOM:** 5.00%
+- **EEM:** 5.00%
+- **BTC-USD:** 5.00%
 
-- How should portfolio risk be measured?
-- What do risk metrics capture, and what do they miss?
-- How do volatility and correlation affect diversification?
-- How sensitive are conclusions to modeling assumptions?
-- How can statistical analysis be translated into investment judgment?
+The constraints include long-only positions, minimum allocations to traditional assets, a strict 5% Bitcoin cap, and full investment of portfolio capital.
 
-## Methods
+## Methods Used
 
-The analysis may include:
+The analysis includes:
 
-- Historical return analysis
-- Volatility estimation
-- Portfolio risk measurement
-- Value-at-Risk or downside risk analysis
-- Correlation and diversification analysis
-- Scenario or stress testing
-- Backtesting and interpretation of model performance
+- Constrained mean-variance optimization
+- Efficient frontier analysis
+- Historical performance comparison
+- Benchmarking against ACWI, AOR, and SPY
+- Maximum drawdown analysis
+- Expected shortfall and downside risk metrics
+- Portfolio risk budgeting
+- Percent contribution to risk
+- Rolling performance analysis
+- Backtested portfolio weights
+- CAPM regression
+- Bootstrapped 3-year forecast
+- Correlation and normality diagnostics
 
-## Key Takeaways
+## Main Findings
 
-- Risk metrics are useful only when their assumptions and limitations are clearly understood.
-- Historical data can reveal patterns in return, volatility, and correlation, but those relationships may shift under stress.
-- Diversification depends not only on the number of assets in a portfolio, but also on how those assets behave together.
-- Quantitative models are most valuable when paired with judgment about market structure, economic context, and portfolio objectives.
-- Clear communication is central to investment and portfolio analytics work because technical results need to support practical decision-making.
+The fund produced strong historical performance over the sample period, with higher long-term returns than ACWI, AOR, and SPY, though with meaningfully higher volatility and drawdowns.
+
+The analysis shows that:
+
+- JPM acts as the main return engine but also dominates portfolio risk.
+- GLD provides meaningful diversification because of its low volatility and favorable correlation profile.
+- BTC contributes significant upside potential, but even a 5% allocation creates a material risk contribution.
+- XOM and EEM add incremental macro and geographic diversification.
+- The portfolio benefits from exposure to multiple return drivers rather than relying only on traditional U.S. equity beta.
+
+## Risk Interpretation
+
+The project highlights the importance of looking beyond headline returns.
+
+Although the strategy achieved strong historical returns, it also experienced a large maximum drawdown and a high annualized standard deviation. This makes the strategy better understood as a high-growth, multi-asset portfolio with defensive components rather than a low-risk balanced portfolio.
+
+Risk budgeting shows that portfolio risk is not distributed in the same proportion as capital weights. JPM receives the largest allocation and contributes the majority of total portfolio risk, while GLD receives a large allocation but contributes relatively little to total risk. BTC remains a meaningful risk factor despite its small weight.
+
+## Investment Interpretation
+
+The portfolio is designed around the idea that resilience does not mean avoiding volatility entirely. Instead, resilience comes from combining assets with different macro sensitivities, controlling exposure to extreme volatility, and maintaining the ability to recover across changing regimes.
+
+The project demonstrates how quantitative optimization can support investment judgment, but also why constraints, interpretation, and practical risk controls are essential.
 
 ## Relevance
 
-This project demonstrates my ability to combine mathematical, statistical, and financial reasoning in a structured research format.
+This project is relevant to investment research, portfolio analytics, asset allocation, and quantitative finance-adjacent roles because it combines:
 
-It is intended as a sample of work relevant to roles in investment research, portfolio analytics, asset allocation, financial data analysis, and quantitative finance-adjacent work.
+- Financial theory
+- Empirical analysis
+- Portfolio construction
+- Risk interpretation
+- Benchmarking
+- Written investment communication
 
 ## Main File
 

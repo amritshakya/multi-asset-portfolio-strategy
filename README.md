@@ -1,33 +1,61 @@
-# Portfolio Risk Modeling
+# Resilient Growth Opportunities Fund
 
-This repository contains a quantitative finance project focused on portfolio risk, return behavior, and model-based investment analysis.
+This repository contains a quantitative finance project that designs, analyzes, and backtests a multi-asset portfolio strategy called the **Resilient Growth Opportunities Fund**.
 
-The project was originally developed as an academic research paper and is being organized here as a professional work sample for investment research, portfolio analytics, and financial data analysis roles.
+The project applies constrained mean-variance optimization, portfolio risk analysis, benchmark comparison, risk budgeting, and forecasting to evaluate a strategy built across U.S. equities, emerging markets, real assets, energy, and a capped digital asset allocation.
 
 ## Project Overview
 
-The goal of this project is to examine how quantitative methods can be used to analyze portfolio risk and evaluate financial market behavior.
+The Resilient Growth Opportunities Fund is designed to pursue long-term risk-adjusted returns across changing macroeconomic environments.
 
-The work connects statistical modeling with investment-relevant questions, including how risk is measured, how assumptions affect conclusions, and how quantitative outputs can be translated into clear portfolio judgment.
+The portfolio combines:
+
+- **JPM** – U.S. financials and cyclical growth exposure
+- **GLD** – defensive real asset exposure
+- **XOM** – energy and commodity-cycle exposure
+- **EEM** – emerging markets equity exposure
+- **BTC-USD** – capped digital asset exposure for convex upside
+
+The project begins with a theoretical Markowitz tangency portfolio and then applies practical constraints to create a more stable, long-only, implementable allocation.
+
+## Final Portfolio
+
+The final constrained allocation is:
+
+- JPMorgan Chase & Co. (**JPM**) – 57.85%
+- SPDR Gold Shares (**GLD**) – 27.15%
+- ExxonMobil (**XOM**) – 5.00%
+- iShares MSCI Emerging Markets ETF (**EEM**) – 5.00%
+- Bitcoin (**BTC-USD**) – 5.00%
+
+The allocation reflects a balance between growth, diversification, defensive assets, and controlled exposure to high-volatility return drivers.
 
 ## Key Questions
 
-- How can portfolio risk be measured and interpreted using historical financial data?
-- What are the strengths and limitations of common risk metrics?
-- How do volatility, correlation, and diversification affect portfolio behavior?
-- How can quantitative analysis support investment and portfolio decision-making?
+- How can a multi-asset portfolio be constructed using constrained mean-variance optimization?
+- How do practical constraints change the theoretical tangency portfolio?
+- How does the strategy perform relative to ACWI, AOR, and SPY?
+- Which assets drive portfolio risk, return, and drawdowns?
+- How do rolling weights, rolling Sharpe ratios, and backtests change across macro regimes?
+- How can risk metrics such as drawdown, expected shortfall, and risk contribution improve portfolio interpretation?
 
 ## Methods
 
-The project may include elements of:
+The project includes:
 
-- Return and volatility analysis
-- Portfolio risk measurement
-- Value-at-Risk and downside risk metrics
-- Correlation and diversification analysis
-- Scenario analysis or stress testing
-- Backtesting and model evaluation
-- Statistical interpretation of financial time series
+- Constrained mean-variance optimization
+- Efficient frontier analysis
+- Historical return and volatility analysis
+- Benchmark comparison against ACWI, AOR, and SPY
+- Downside risk analysis
+- Expected shortfall
+- Maximum drawdown analysis
+- Risk budgeting and percent contribution to risk
+- Rolling mean, volatility, and Sharpe ratio analysis
+- Backtested portfolio weights
+- CAPM regression
+- Bootstrapped 3-year forecast
+- Correlation and distributional diagnostics
 
 ## Repository Structure
 
@@ -44,21 +72,29 @@ The project may include elements of:
 ## Files
 
 - `paper/final-paper.pdf` – Full research paper
-- `executive-summary.md` – Short summary of the project, methods, and takeaways
+- `executive-summary.md` – Summary of the strategy, methods, and main findings
 - `data/` – Notes on data sources and availability
 - `code/` – Supporting analysis files, to be added or cleaned
 - `outputs/` – Charts and exhibits, to be added if available
 
 ## Skills Demonstrated
 
+- Portfolio construction
 - Quantitative finance
-- Portfolio risk analysis
-- Statistical modeling
+- Mean-variance optimization
+- Risk and return analysis
+- Benchmarking and backtesting
+- Risk budgeting
 - Financial time series analysis
 - Investment research communication
 - Technical writing
-- R/Python-based analysis
 
 ## Status
 
-This repository is being developed into a polished work sample. The research paper is included first, with supporting code, charts, and additional documentation added as the project is cleaned and organized.
+The full research paper is included first. Supporting code, charts, and cleaned data documentation may be added as the project is further organized.
+
+This repository is intended as a professional work sample for investment research, portfolio analytics, asset allocation, and financial data analysis roles.
+
+## Disclaimer
+
+This project was developed for academic and professional portfolio purposes. It is not investment advice or a recommendation to buy or sell any security.
