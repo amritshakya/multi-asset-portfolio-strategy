@@ -1,0 +1,978 @@
+---
+title: "The Resilient Growth Opportunities Fund"
+author: "Amrit Shakya"
+date: "2025-12-15"
+fontsize: 12pt
+output:
+  html_document:
+    df_print: paged
+  pdf_document:
+    latex_engine: xelatex
+    keep_tex: true
+header-includes:
+  - \usepackage{booktabs}
+  - \usepackage{setspace}
+  - \doublespacing
+---
+
+
+```{r 01-setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE)
+```
+
+# Fund Overview
+
+### Introduction
+The Resilient Growth Opportunities Fund is a multi-asset investment strategy designed to deliver strong long-term risk-adjusted returns across a wide range of macroeconomic environments. Modern markets are shaped by inflation cycles, policy uncertainty, commodity shocks, and shifting global liquidity conditions. In response, the fund combines U.S. equities, emerging markets, defensive real assets, and a capped allocation to digital assets to create a portfolio supported by multiple independent return drivers and diversified across economic regimes. The fund targets risk-adjusted performance over a 10–15 year horizon, emphasizing balanced exposures, diversification, and efficient recovery from drawdowns rather than maximizing the highest possible Sharpe ratio, which often results in unstable or overly concentrated portfolios.
+
+### Principal Investment Strategy
+
+The portfolio is constructed using a constrained mean–variance optimization framework. The unconstrained tangency portfolio is first examined to establish a theoretical benchmark for return–risk tradeoffs. Practical constraints are then applied to produce a stable and implementable allocation. The final portfolio reflects several design principles: long-only positions, minimum allocations to traditional assets to preserve diversification, a capped exposure to Bitcoin to limit volatility, and a full-investment requirement.
+
+These constraints are intended to reduce sensitivity to estimation error and prevent excessive concentration, resulting in a portfolio that is better suited to withstand changing macroeconomic conditions while maintaining strong upside potential.
+
+### Principal Risks
+
+Despite its diversified construction and risk controls, investment in the fund involves some risks. Prospective investors should carefully consider the following factors.
+
+**Interest Rate and Real Yield Risk**  
+Changes in interest rates and real yields can materially impact asset valuations. Rising real rates may pressure equity valuations, reduce the attractiveness of gold, and tighten global liquidity conditions, potentially leading to concurrent drawdowns across multiple holdings.
+
+**Equity and Concentration Risk**  
+Although the portfolio is diversified across asset classes, it maintains a significant allocation to U.S. financial equities. As a result, adverse developments affecting the banking sector, credit conditions, or U.S. economic growth may disproportionately influence portfolio performance.
+
+**Emerging Markets Risk**  
+Exposure to emerging markets introduces additional risks, including political instability, regulatory uncertainty, currency fluctuations, and lower market liquidity. These factors can increase volatility and contribute to periods of underperformance relative to developed markets.
+
+\newpage
+**Commodity and Energy Market Risk**  
+Energy and commodity-linked assets are subject to supply–demand imbalances, geopolitical events, and regulatory changes related to environmental policy. These factors may cause abrupt price movements and heightened volatility.
+
+**Digital Asset Risk**  
+The fund includes a capped allocation to Bitcoin, which is characterized by extreme volatility, evolving regulatory frameworks, and sensitivity to global liquidity conditions. Although position size is strictly limited, digital assets may experience sharp and sudden drawdowns that contribute meaningfully to portfolio risk.
+
+**Model and Estimation Risk**  
+Portfolio construction relies on historical return, volatility, and correlation estimates. These inputs may not accurately reflect future market dynamics, particularly during structural regime shifts or periods of market stress. Optimization outputs are therefore subject to estimation error.
+
+**Liquidity Risk**  
+While the portfolio primarily consists of liquid, exchange-traded instruments, market stress events may reduce liquidity, widen bid–ask spreads, or impair the ability to rebalance positions efficiently.
+
+\newpage
+# Historical Performance
+
+```{r 03, echo= FALSE, message=FALSE, warning=FALSE}
+## set options and load packages
+options(digits = 3)
+options(width = 75)
+Sys.setenv(TZ="UTC")
+
+library(quantmod)
+library(PerformanceAnalytics)
+library(tidyverse)
+library(xts)
+library(zoo)
+library(knitr)
+library(tseries)
+library(corrplot)
+library(IntroCompFinR)
+
+library(PortfolioAnalytics)
+library(ROI)
+library(ROI.plugin.quadprog)
+library(ROI.plugin.glpk)
+```
+
+```{r 04, echo= FALSE, message=FALSE, warning=FALSE, results='hide'}
+
+# Define tickers (diverse, cross-asset)
+tickers <- c( "JPM", "XOM",       # U.S. industry benchmarks (financials-25%, energy-25%)
+             "EEM",               # International equities (25%)
+             "GLD",                     # Commodities (15%)
+             "BTC-USD")                  # Crypto (10%)
+
+# Date range: last 10 years
+start <- Sys.Date() - 10*365
+end   <- Sys.Date()
+
+# Download data
+getSymbols(tickers, src = "yahoo", from = start, to = end, auto.assign = TRUE)
+
+# Extract Adjusted prices for all tickers dynamically
+adjPrices <- do.call(merge, lapply(tickers, function(tk) Ad(get(tk))))
+colnames(adjPrices) <- tickers
+
+# Convert to monthly prices
+monthlyPrices <- to.monthly(adjPrices, indexAt = "lastof", OHLC = FALSE)
+
+# Compute monthly returns
+returns <- na.omit(Return.calculate(monthlyPrices), method = "log")
+
+# Now add benchmark tickers
+bench_tickers <- c("ACWI", "AOR", "SPY" )
+
+getSymbols(bench_tickers, src = "yahoo", from = start, to = end, auto.assign = TRUE)
+
+# Extract Adjusted prices for benchmarks
+benchPrices <- do.call(merge, lapply(bench_tickers, function(tk) Ad(get(tk))))
+colnames(benchPrices) <- bench_tickers
+
+# Convert to monthly and compute returns (log or simple, just be consistent)
+benchMonthly <- to.monthly(benchPrices, indexAt = "lastof", OHLC = FALSE)
+benchRet <- na.omit(Return.calculate(benchMonthly, method = "log"))
+
+```
+
+
+```{r 05, echo = FALSE}
+rf <- 0.045
+mu.val <- 12 * apply(returns, 2, mean)
+sig.val <- sqrt(12) * apply(returns, 2, sd)
+cov.val <- 12 * cov(returns)
+corr.val <- cor(returns)
+# Benchmarks
+er_ACWI<- 12 * mean(benchRet[,1])
+sd_ACWI <- sqrt(12) *  sd(benchRet[,1])
+
+er_AOR  <-12 *  mean(benchRet[,2])
+sd_AOR  <- sqrt(12) * sd(benchRet[,2])
+
+```
+
+
+  
+
+```{r 06, echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+library(PortfolioAnalytics)
+assets = colnames(returns)
+# Portfolio specification
+pspec <- portfolio.spec(assets = assets)
+
+# Full investment
+pspec <- add.constraint(pspec, type = "full_investment")
+
+# Long-only
+pspec <- add.constraint(pspec, type = "long_only")
+# Create min and max weight vectors
+min_w <- rep(0.05, length(assets))   # all assets at least 5%
+max_w <- rep(1.0,  length(assets))   # general max
+
+# Now adjust BTC constraint:
+btc_index <- which(assets == "BTC-USD")
+max_w[btc_index] <- 0.05  # BTC cannot exceed 5%
+pspec <- add.constraint(pspec, 
+                        type = "box",
+                        min = min_w,
+                        max = max_w)
+pspec <- add.objective(pspec, type = "return", name = "mean")
+pspec <- add.objective(pspec, type = "risk",   name = "StdDev")
+
+opt_constrained <- optimize.portfolio(
+  R = returns,
+  portfolio = pspec,
+  optimize_method = "ROI"
+)
+
+opt_constrained
+new_weights <- extractWeights(opt_constrained)
+new_weights
+
+R_new <- Return.portfolio(R = returns, weights = new_weights)
+port_er = 12 * mean (R_new)
+port_sd = sqrt(12) * sd(R_new)
+
+```
+
+```{r 07, echo = FALSE}
+### 1. Merge portfolio + benchmarks + assets
+### ---------------------------
+hist_rets <- na.omit(merge(R_new, benchRet, returns))
+colnames(hist_rets) <- c("Resilient Fund", "ACWI", "AOR", "SPY", assets)
+
+### ---------------------------
+### 2. CAGR helper function
+### ---------------------------
+CAGR <- function(R) {
+  R <- na.omit(R)
+  if (length(R) == 0) return(NA)
+  total <- prod(1 + R) - 1
+  yrs <- length(R) / 12
+  (1 + total)^(1/yrs) - 1
+}
+
+### ---------------------------
+### 3. Slicing function
+### ---------------------------
+slice_years <- function(R, yrs) {
+  end_date <- index(R)[NROW(R)]
+  start_date <- end_date - years(yrs)
+  R[paste0(start_date, "/", end_date)]
+}
+
+### ---------------------------
+### 4. Compute CAGR for all horizons
+### ---------------------------
+
+# Full-period CAGR
+cagr_full <- apply(hist_rets, 2, CAGR)
+
+# YTD
+ytd_rets <- hist_rets[paste0(format(Sys.Date(), "%Y"), "/")]
+cagr_ytd <- apply(ytd_rets, 2, CAGR)
+
+# 3-Year CAGR
+cagr_3yr <- apply(slice_years(hist_rets, 3), 2, CAGR)
+
+# 5-Year CAGR
+cagr_5yr <- apply(slice_years(hist_rets, 5), 2, CAGR)
+
+# 10-Year CAGR
+cagr_10yr <- apply(slice_years(hist_rets, 10), 2, CAGR)
+
+### ---------------------------
+### 5. Annualized SD (full-sample)
+### ---------------------------
+ann_sd_vec <- apply(hist_rets, 2, function(x) sd(x) * sqrt(12))
+
+### ---------------------------
+### 6. Sharpe ratio (full-sample)
+### ---------------------------
+rf <- 0.045
+sharpe_vec <- (cagr_full - rf) / ann_sd_vec
+
+### ---------------------------
+### 7. Max Drawdown (full-sample)
+### ---------------------------
+mdd_vec <- apply(hist_rets, 2, maxDrawdown)
+
+
+library(knitr)
+library(scales)
+
+# Convert return-based metrics to percent formatting
+to_percent <- function(x) scales::percent(x, accuracy = 0.1)
+
+perf_table <- data.frame(
+  Metric = c(
+    "CAGR (Full Sample)",
+    "CAGR (YTD)",
+    "CAGR (3-Year)",
+    "CAGR (5-Year)",
+    "CAGR (10-Year)",
+    "Annualized SD",
+    "Sharpe Ratio",
+    "Max Drawdown"
+  ),
+  `Resilient Fund` = c(
+    to_percent(cagr_full[1]),
+    to_percent(cagr_ytd[1]),
+    to_percent(cagr_3yr[1]),
+    to_percent(cagr_5yr[1]),
+    to_percent(cagr_10yr[1]),
+    round(ann_sd_vec[1], 3),
+    round(sharpe_vec[1], 3),
+    to_percent(mdd_vec[1])
+  ),
+  ACWI = c(
+    to_percent(cagr_full[2]),
+    to_percent(cagr_ytd[2]),
+    to_percent(cagr_3yr[2]),
+    to_percent(cagr_5yr[2]),
+    to_percent(cagr_10yr[2]),
+    round(ann_sd_vec[2], 3),
+    round(sharpe_vec[2], 3),
+    to_percent(mdd_vec[2])
+  ),
+  AOR = c(
+    to_percent(cagr_full[3]),
+    to_percent(cagr_ytd[3]),
+    to_percent(cagr_3yr[3]),
+    to_percent(cagr_5yr[3]),
+    to_percent(cagr_10yr[3]),
+    round(ann_sd_vec[3], 3),
+    round(sharpe_vec[3], 3),
+    to_percent(mdd_vec[3])
+  ),
+  SPY = c(
+    to_percent(cagr_full[4]),
+    to_percent(cagr_ytd[4]),
+    to_percent(cagr_3yr[4]),
+    to_percent(cagr_5yr[4]),
+    to_percent(cagr_10yr[4]),
+    round(ann_sd_vec[4], 3),
+    round(sharpe_vec[4], 3),
+    to_percent(mdd_vec[4])
+  ),
+  check.names = FALSE
+)
+
+kable(perf_table, 
+      caption = "Performance Summary: Fund vs Benchmarks", 
+      booktabs = TRUE, 
+      align = c("l","c","c","c","c"))
+
+
+```
+
+Over the past ten years, the strategy has outperformed ACWI, AOR, and SPY, though this outperformance is accompanied by higher interim drawdowns.
+ 
+
+```{r 08-equity-curve, fig.cap = "Performance Summary: Fund vs Benchmarks", echo=FALSE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+
+# Align dates across all assets
+common_dates <- Reduce(
+  intersect,
+  list(index(R_new), index(benchRet$ACWI), index(benchRet$AOR), index(benchRet$SPY))
+)
+
+fund_ret  <- R_new[common_dates]
+acwi_ret  <- benchRet$ACWI[common_dates]
+aor_ret   <- benchRet$AOR[common_dates]
+spy_ret   <- benchRet$SPY[common_dates]
+
+toPlot <- na.omit(merge(fund_ret, acwi_ret, aor_ret, spy_ret))
+colnames(toPlot) <- c("Fund", "ACWI", "AOR", "SPY")
+
+charts.PerformanceSummary(
+  toPlot
+)
+```
+
+The cumulative wealth curve (Figure 1) shows that the fund initially tracks the benchmarks, reflecting shared exposure to global equity trends. Clear divergence occurs during periods of strong performance in gold and digital assets—most notably in 2020–2021 and 2023–2024—when the fund compounds more rapidly than traditional equity and balanced portfolios.
+
+This pattern explains the fund’s higher 10-year CAGR. Unlike SPY, which is heavily driven by U.S. mega-cap equities, the fund’s returns arise from a broader mix of assets, including gold, emerging markets, financials, and a capped digital-asset allocation. As a result, the strategy captures multiple global risk premia and relies on cyclical recovery rather than traditional defensive stability.
+
+# Fund Profile
+### Asset Descriptions
+
+**JPM — JPMorgan Chase & Co.**
+JPMorgan Chase is the largest U.S. bank and provides diversified exposure to consumer banking, investment banking, and credit markets. Its earnings are closely tied to economic growth, interest rate conditions, and credit demand, making it a strong proxy for U.S. macroeconomic activity. Supported by scale, capital strength, and consistent profitability, JPM serves as the portfolio’s primary growth anchor, offering liquidity, dividends, and broad institutional exposure.
+
+**EEM — iShares MSCI Emerging Markets ETF**
+EEM offers diversified exposure to emerging economies with higher long-term growth potential but greater macroeconomic and geopolitical risk. Emerging markets often behave differently from U.S. equities due to currency movements, commodity cycles, and policy divergence. Including EEM enhances global diversification and provides access to alternative growth drivers outside developed markets.
+
+**GLD — SPDR Gold Shares**
+GLD tracks the price of gold, a real asset that historically performs well during inflationary periods, monetary uncertainty, and geopolitical stress. Gold’s low correlation with equities enhances portfolio diversification and helps mitigate drawdowns during risk-off environments, while still participating in upside during accommodative monetary regimes.
+
+**XOM — ExxonMobil Corporation**
+ExxonMobil provides exposure to global energy markets and commodity cycles. Its performance is driven by oil prices, supply dynamics, and geopolitical developments. Including XOM adds an inflation-sensitive real asset component and balances the portfolio during periods when energy and commodities outperform financial assets.
+
+**BTC-USD — Bitcoin**
+Bitcoin is a highly volatile digital asset with asymmetric return potential tied to liquidity cycles, adoption trends, and macro narratives. While speculative, BTC offers convex upside not available in traditional assets. A strict 5% allocation cap allows the fund to benefit from this upside while limiting overall portfolio risk.
+
+Together, these assets combine cyclical growth, defensive hedging, and convex return potential, improving performance across varying market environments.
+
+\newpage
+### Descriptive Statistics
+
+```{r} 
+
+descriptive_stats <- data.frame(
+  Asset     = colnames(returns),
+  Mean      = apply(returns, 2, mean),
+  SD        = apply(returns, 2, sd),
+  Skewness  = apply(returns, 2, skewness),
+  Kurtosis  = apply(returns, 2, kurtosis),
+  row.names = NULL
+)
+
+knitr::kable(
+  descriptive_stats,
+  caption = "Monthly Descriptive Statistics for Asset Returns"
+)
+```
+
+
+The descriptive statistics highlight clear differences in return behavior across the assets. JPM, XOM, and EEM exhibit return and volatility profiles typical of equities, while GLD shows lower volatility and mild positive skewness, consistent with its defensive role. BTC-USD stands out with the highest average monthly return and substantially higher volatility, reflecting its convex and speculative nature.
+
+
+
+
+### Benchmarks
+
+ACWI — MSCI All-Country World ETF
+ACWI represents the global equity market across developed and emerging economies. Its performance is heavily influenced by U.S. equities but remains sensitive to global growth and macro conditions. ACWI serves as an appropriate benchmark for evaluating the fund’s equity exposure and global positioning.
+
+AOR — iShares Core Growth Allocation ETF
+AOR is a diversified 60/40-style growth portfolio combining global equities and bonds. It reflects a traditional balanced strategy designed for steady long-term performance. AOR provides a useful reference for comparing the fund against a professionally managed multi-asset benchmark.
+
+# Allocation Rationale
+After imposing constraints on the theoretical Markowitz tangency solution to turn it into a realistic and investable fund, the fund allocations looks like following:
+
+
+
+```{r 09-asset-allocation}
+library(knitr)
+
+asset_table <- data.frame(
+  Asset = c("JPMorgan Chase & Co.", "SPDR Gold Shares", "ExxonMobil", 
+            "iShares MSCI Emerging Markets", "Bitcoin"),
+  Ticker = c("JPM", "GLD", "XOM", "EEM", "BTC-USD"),
+  Sector = c("U.S. Financials (Equity)", "Real Assets / Commodities",
+             "Energy / Oil & Gas", "Emerging Markets Equity", 
+             "Digital Asset"),
+  Weight = c("57.85%", "27.15%", "5%", "5%", "5%")
+)
+
+knitr::kable(asset_table,
+             caption = " Fund Asset Summary")
+```
+
+
+### Efficient Frontier
+
+```{r 10-ef-plot, fig.cap="Efficient Frontier", fig.align='center',fig.width=6, fig.height=4, echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+  
+#Plot Attributes
+asset_names <- colnames(returns)
+assetname.val <- 1
+dot.val <- 1
+axis.val <- 1
+
+#Plotting the Assets
+plot(sig.val,mu.val, ylim=c(0,1), xlim=c(0,1), ylab=expression(mu[p]),
+     xlab=expression(sigma[p]), pch=16, col="blue", cex=dot.val, cex.lab=axis.val)  
+text(sig.val, mu.val, labels=asset_names, pos=4, cex = assetname.val)
+
+#Plotting risk free
+points(0, rf, pch=16, col="red", cex=dot.val)  
+text(0.001, rf, labels=expression(r[f]), pos=1, cex = assetname.val)
+
+#efficient frontier from introfinR
+ef <- efficient.frontier(mu.val, cov.val, nport = 50)
+
+lines (ef$sd,ef$er, 
+     col = "purple",
+     lwd = 2)
+
+
+points(port_sd, port_er, col="green", pch=16, cex=1.4)
+text(port_sd, port_er, "Resilient Portfolio ", pos=3)
+
+
+
+# Benchmarks: ACWI and AOR
+points(sd_ACWI, er_ACWI, col = "orange", pch = 15, cex = 1.4)
+text(sd_ACWI, er_ACWI, "ACWI", pos = 2)
+
+points(sd_AOR, er_AOR, col = "brown", pch = 15, cex = 1.4)
+text(sd_AOR, er_AOR, "AOR", pos = 1)
+
+
+```
+  
+The efficient frontier represents the set of portfolios that maximize expected return for each level of risk based on historical mean–variance relationships. The upward slope reflects the standard risk–return trade-off, with lower-risk portfolios offering lower expected returns and higher-risk portfolios delivering greater return potential. Individual assets’ positions illustrate their standalone risk profiles, with low-volatility assets near the lower end and higher-risk assets, such as Bitcoin, further to the right.
+
+The constrained portfolio lies close to—but slightly below—the efficient frontier, as expected given the imposed long-only, minimum-weight, and volatility control constraints. Despite these restrictions, the fund captures a substantial portion of the attainable risk-adjusted return while maintaining diversification and limiting exposure to extreme volatility. Relative to individual assets, the portfolio shifts upward and leftward, reflecting the benefits of cross-asset diversification and a risk profile aligned with its growth and macro-resilience objectives.
+
+Other risk measures beyond total volatility are reported in the table below.
+
+
+```{r 11, echo = FALSE}
+
+# 1. Annual return and SD 
+ann_table <- table.AnnualizedReturns(R_new, geometric = TRUE)
+
+# 2. SemiDeviation 
+semi_m <- SemiDeviation(R_new)
+semi_annual <- sqrt(semi_m)
+
+# 3. DownsideDeviation (professor method)
+dd_m <- DownsideDeviation(R_new, MAR = 0)
+dd_annual <- sqrt(dd_m)
+
+# 4. Expected Shortfall (keep monthly)
+es_m <- ES(R_new, p = 0.95)
+
+# 5. Max Drawdown
+mdd <- maxDrawdown(R_new)
+
+risk_table <- data.frame(
+  Metric = c(
+    "Annual Return",
+    "Annual SD",
+    "Annual SemiDeviation",
+    "Annual DownsideDeviation",
+    "ES 95% (Monthly)",
+    "Max Drawdown"
+  ),
+  Value = c(
+    ann_table[1,1],
+    ann_table[2,1],
+    as.numeric(semi_annual),
+    as.numeric(dd_annual),
+    as.numeric(es_m),
+    as.numeric(mdd)
+  )
+)
+
+knitr::kable(
+  risk_table,
+  caption = "Annualized Stats"
+)
+
+```
+Table 4 reports several downside-oriented risk measures—semideviation, downside deviation, and expected shortfall—which complement the standard volatility metric used throughout the optimization. These measures provide insight into the distribution of losses rather than average fluctuations. For this portfolio, downside deviation and expected shortfall are materially lower than what would be implied by a high-volatility, equity-dominant fund, reflecting the stabilizing influence of GLD and the diversified multi-asset structure. At the same time, the presence of BTC introduces some tail sensitivity, which is visible in the expected shortfall estimate. Although the optimization itself relies on total volatility, these additional metrics help describe the shape of the return distribution and confirm that the portfolio’s downside risk is moderated by its defensive components. 
+
+# Risk Analysis
+
+
+
+```{r 09, echo=FALSE}
+
+# Covariance matrix of asset returns
+cov_mat <- cov(returns)
+
+# Convert weights to numeric vector
+w <- as.numeric(new_weights)
+
+# Portfolio variance and SD (consistent with cov_mat)
+var_p <- as.numeric(t(w) %*% cov_mat %*% w)
+sd_p  <- sqrt(var_p)
+
+
+# Marginal Contribution to Risk
+MCR <- (cov_mat %*% w) / sd_p
+
+# Component Risk
+CR <- w * MCR
+
+# Percent Contribution to Risk
+PCR <- CR / sd_p
+
+# Create table
+risk_budget <- data.frame(
+  Asset = colnames(returns),
+  Weight = w,
+  MCR = as.numeric(MCR),
+  CR = as.numeric(CR),
+  PCR = as.numeric(PCR)
+)
+
+kable(risk_budget, caption= "Portfolio Risk Budgeting")
+
+```
+The risk-budgeting results in Table 5 show how each asset contributes to total portfolio volatility. Although JPM has the largest weight, its Percent Contribution to Risk (PCR ≈ 78%) is even larger, indicating that it dominates the portfolio’s risk profile. This reflects its substantial allocation and correlations with other assets, positioning JPM as both the primary return engine and the central risk driver of the fund.
+
+In contrast, GLD holds a sizable weight (27%) but contributes only about 3.6% of total risk due to its low volatility and favorable correlation properties. This confirms its role as a defensive anchor, dampening portfolio variance and offsetting equity-driven drawdowns without substantially increasing risk.
+
+BTC, despite a strict 5% cap, contributes roughly 11% of total risk, highlighting its high volatility and convex return profile. Even at a small weight, BTC remains a meaningful risk factor, validating the need for tight constraints while preserving upside optionality. XOM and EEM, each held at the minimum allocation, contribute less than 5% of total risk, providing incremental diversification without influencing overall volatility.
+
+Overall, the PCR distribution aligns with the fund’s objective: JPM drives growth, GLD stabilizes risk, BTC adds controlled convexity, and XOM/EEM enhance diversification. The portfolio balances concentration and regime exposure such that no single asset, outside the intentionally convex BTC, threatens overall stability.
+
+
+### Rolling Analysis and Backtesting
+
+
+```{r roll-mean-vol, fig.cap="24-Month Rolling Mean and Volatility with ±2 SE Bands", fig.width=9, fig.height=3.5, fig.show="hold",  fig.pos="H"}
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+
+## --- Rolling Mean ---
+roll.mean <- rollapply(R_new, 24, mean, align="right", fill=NA)
+roll.sd   <- rollapply(R_new, 24, sd,   align="right", fill=NA)
+se.mean   <- roll.sd / sqrt(24)
+
+meanPlot <- merge(
+  roll.mean,
+  roll.mean - 2*se.mean,
+  roll.mean + 2*se.mean,
+  R_new
+)
+
+plot.zoo(
+  meanPlot, plot.type="single",
+  main="Rolling Mean",
+  ylab="Returns",
+  col=c("blue","red","red","lightgray"),
+  lwd=c(2,1,1,1),
+  lty=c(1,2,2,1)
+)
+
+abline(h=0, lty=3)
+
+legend(
+  "top", horiz=TRUE, bty="n",
+  legend=c("Mean","±2 SE","Returns"),
+  col=c("blue","red","lightgray"),
+  lwd=c(2,1,1),
+  lty=c(1,2,1)
+)
+
+## --- Rolling Volatility ---
+roll.vol <- rollapply(R_new, 24, sd, align="right", fill=NA)
+se.vol   <- roll.vol / sqrt(2*24)
+
+volPlot <- merge(
+  roll.vol,
+  roll.vol - 2*se.vol,
+  roll.vol + 2*se.vol,
+  R_new
+)
+
+plot.zoo(
+  volPlot, plot.type="single",
+  main="Rolling Volatility",
+  ylab="Volatility",
+  col=c("darkgreen","red","red","lightgray"),
+  lwd=c(2,1,1,1),
+  lty=c(1,2,2,1)
+)
+abline(h=0, lty=3)
+legend(
+  "top", horiz=TRUE, bty="n",
+  legend=c("Volatility","±2 SE","Returns"),
+  col=c("darkgreen","red","lightgray"),
+  lwd=c(2,1,1),
+  lty=c(1,2,1)
+)
+
+par(mfrow = c(1, 1))
+```
+The 24-month rolling metrics illustrate how the portfolio adapts across changing macroeconomic regimes. While short-term fluctuations in returns, volatility, and Sharpe ratios are evident, particularly during periods of market stress or divergent asset cycles, the strategy avoids prolonged periods of weak performance and exhibits relatively moderate drawdowns with faster recoveries. Assets such as GLD, EEM, and BTC move through distinct cycles, which can temporarily depress rolling estimates despite strong underlying fundamentals. Over the full 10-year sample, however, the portfolio’s mean return, volatility, and Sharpe ratio remain well contained, with risk-adjusted performance exceeding that of SPY, indicating that short-run noise does not undermine the strategy’s long-run resilience.
+
+```{r 12-sharpe, fig.pos='H', fig.cap  = "24-Month Rolling Sharpe Ratio", fig.width=5, fig.height=4}
+### --- Rolling Sharpe Ratio (24 Months) ---
+
+roll.sharpe <- rollapply(
+  R_new, 24,
+  FUN = function(x) {
+    (mean(x) - rf) / sd(x)
+  },
+  align = "right",
+  fill = NA
+)
+
+# Combine for overlay plot with monthly returns
+sharpePlot_noSE <- merge(roll.sharpe, R_new)
+
+plot.zoo(
+  sharpePlot_noSE,
+  plot.type = "single",
+  
+  ylab = "Sharpe Ratio",
+  col = c("purple", "lightgray"),
+  lwd = c(2, 1),
+  lty = c("solid", "solid")
+)
+
+abline(h = 0, col = "black", lty = 3)
+
+legend(
+  x = "top",
+  inset = 0.02,
+  horiz = TRUE,
+  bty = "n",
+  legend = c("Rolling Sharpe", "Monthly returns"),
+  col = c("purple", "lightgray"),
+  lwd = c(2, 1),
+  lty = c(1, 1)
+)
+
+
+```
+
+
+### Backtest Weights
+```{r 13-wts-plot, fig.pos='H', fig.cap = "Backtest Weights Over Time", echo=FALSE, message=FALSE, warning=FALSE, fig.width= 8, fig.height=5}
+
+# 24-month rolling backtest for your portfolio
+backtest_portfolio <- optimize.portfolio.rebalancing(
+  R               = returns,       
+  portfolio       = pspec,
+  optimize_method = "ROI",
+  rebalance_on    = "months",
+  training_period = 24,
+  rolling_window  = 24
+)
+# Extract rebalance optimization results
+rebalance_list <- backtest_portfolio$opt_rebalancing
+
+# Extract weight vectors for each rebalance
+weights_list <- lapply(rebalance_list, function(x) x$weights)
+
+# Extract rebalance dates
+dates <- as.Date(names(rebalance_list))
+
+# Identify and remove NA weight vectors
+valid_idx <- !sapply(weights_list, function(x) all(is.na(x)))
+weights_list <- weights_list[valid_idx]
+dates <- dates[valid_idx]
+
+# Convert to xts
+wts_clean <- xts(do.call(rbind, weights_list), order.by = dates)
+
+# Plot
+# Convert xts to matrix
+wmat <- coredata(wts_clean)
+dates <- index(wts_clean)
+
+cols <- c("red", "green", "blue", "gold", "purple")
+names(cols) <- colnames(wts_clean)
+# Expand margins
+par(mar = c(5, 4, 6, 10))
+par(xpd = NA)  # allow drawing outside plot area
+
+bp <- barplot(
+  t(wmat),
+  col = cols,
+  border = "black",
+  lwd = 1,
+  space = 0,
+  width = 1,
+  axes = FALSE,
+ 
+  ylab = "Portfolio Weight"
+)
+
+axis(2, las = 1)
+
+label_idx <- seq(1, length(dates), length.out = 6)
+axis(1,
+     at = bp[label_idx],
+     labels = format(dates[label_idx], "%Y-%m"),
+     cex.axis = 0.9
+)
+
+# Legend outside plot
+legend(
+  x = max(bp) * 1.05,   # to the right of bars
+  y = 1,                # top of plot
+  legend = colnames(wts_clean),
+  fill = cols,
+  box.lwd = 1.3,
+  bty = "o",
+  cex = 0.9
+)
+
+```
+
+
+The backtested weights illustrate how the optimizer reallocates capital over time while respecting the fund’s structural constraints, including minimum allocations, long-only positions, and a strict cap on BTC. Although some reallocations appear sizable across rolling windows, they reflect the intended behavior of a constrained mean–variance framework that adapts to changing return and covariance patterns while maintaining diversified, multi-asset exposure.
+
+During periods of heightened macro uncertainty or falling real yields, the optimizer tends to tilt toward GLD, which has historically performed well in defensive or inflationary environments. As economic momentum strengthens, the model shifts more weight toward JPM, the portfolio’s primary growth driver. Adjustments in XOM and EEM reflect changing conditions in commodity markets, emerging economies, and global diversification benefits. BTC remains a small but persistent allocation, consistent with its role as a capped source of convex upside.
+
+Short-term fluctuations in the stacked bar chart largely stem from the 24-month rolling calibration window, which is sensitive to recent volatility and correlations. More important than month-to-month variation is the broader pattern: throughout the backtest, the portfolio consistently maintains exposure to U.S. equities, global assets, real assets, and a convexity sleeve. This balance reflects the fund’s emphasis on adaptive diversification rather than reliance on any single return driver.
+
+### Backtest Equity Curve
+```{r 14-backtest-plot, fig.pos='H',fig.cap = "Backtest Equity Curves: Strategy vs SPY", echo=FALSE, message=FALSE, warning=FALSE, fig.width= 6, fig.height=4}
+# 1. Extract weights
+wts_xts <- extractWeights(backtest_portfolio)
+
+# 2. LOCF-fill missing rebalance weights
+wts_filled <- na.locf(wts_xts, na.rm = FALSE)
+
+# Remove leading NA rows
+wts_filled <- wts_filled[rowSums(!is.na(wts_filled)) > 0, ]
+
+# 3. Align with returns
+common_dates <- intersect(index(wts_filled), index(returns))
+wts_final <- wts_filled[common_dates]
+R_bt      <- returns[common_dates]
+
+# 4. Compute strategy backtested returns
+bt_ret <- Return.portfolio(R = R_bt, weights = wts_final)
+
+# 5. Align benchmarks (ACWI, AOR, SPY) to same dates
+bench_acwi <- benchRet$ACWI[common_dates]
+bench_aor  <- benchRet$AOR[common_dates]
+bench_spy  <- benchRet$SPY[common_dates]
+
+# 6. Merge into a single xts object
+toPlot <- na.omit( merge(bt_ret, bench_acwi, bench_aor, bench_spy, join = "inner") )
+
+colnames(toPlot) <- c("Strategy", "ACWI", "AOR", "SPY")
+
+# 7. Plot cumulative wealth
+chart.CumReturns(
+  toPlot,
+  wealth.index = TRUE,
+  geometric = TRUE,
+  ylab = "Wealth (Start = $1)",
+  legend.loc = "topleft"
+)
+
+
+```
+
+The equity curve comparison shows how the optimized strategy and the three benchmarks evolve over time when all returns are compounded from a common starting point.The strategy generally moves in line with the benchmarks during broad market downturns, experiencing declines of similar magnitude and timing. However, once markets begin to recover, the strategy tends to grow more rapidly than the benchmarks. This stronger compounding, driven by its mix of gold, emerging markets, and capped Bitcoin exposure, allows the portfolio to pull ahead over medium to long-horizon windows.
+
+\newpage
+
+### CAPM Regression
+
+```{r 15, echo= FALSE}
+
+## CAPM Regression ----
+library(PerformanceAnalytics)
+
+# Monthly risk-free rate series (same length as fund returns)
+Rf_xts <- xts(rep(rf, nrow(R_new)), index(R_new))
+
+# Compute excess returns
+excess_fund <- R_new - Rf_xts
+excess_mkt  <- benchRet$SPY - Rf_xts
+
+# Merge and clean data
+capm_data <- na.omit(merge(excess_fund, excess_mkt))
+colnames(capm_data) <- c("Fund", "Market")
+
+# Run CAPM regression
+fit <- lm(Fund ~ Market, data = capm_data)
+
+```
+
+```{r 16, echo = FALSE}
+beta <- coef(fit)[2] 
+alpha_monthly <- coef(fit)[1] 
+alpha_annual <- (1 + alpha_monthly)^12 - 1 #  annualization 
+R2 <- summary(fit)$r.squared
+capm_table <- data.frame(
+  Metric = c("Alpha (Annualized)", "Beta", "R-squared"),
+  Value  = c(
+    round(alpha_annual, 3),
+    round(beta, 3),
+    round(R2, 3)
+  )
+)
+
+knitr::kable(
+  capm_table,
+  caption = "CAPM Regression Results"
+)
+
+
+```
+
+The CAPM regression summarizes the fund’s exposure to broad market risk and its ability to generate returns beyond what is explained by the benchmark. The estimated beta of 1.40 indicates that the portfolio is somewhat more sensitive to market movements than the overall equity market. This reflects the influence of JPM and EEM, which carry meaningful equity beta even within a diversified allocation.The annualized alpha of approximately 0.4 suggests a small positive abnormal return after accounting for market exposure. While the point estimate is positive, it should be interpreted cautiously given the relatively short return sample and the inclusion of GLD and BTC, which do not conform cleanly to a single-factor equity model.
+
+The regression’s R² ≈ 0.27 indicates that only about a quarter of the fund’s return variability is explained by the market which   reinforces that the fund’s performance is not dominated by equity beta alone and that diversification meaningfully alters its risk profile relative to traditional stock benchmarks.
+
+\newpage
+#  ForeCasting and Outlook
+The 36-month bootstrapped forecast illustrates how the portfolio may evolve if future returns resemble the historical distribution. The median path rises steadily, suggesting that typical past return sequences support continued growth over the next three years. The lower 95% bound dips modestly early on but avoids severe drawdowns, indicating limited downside risk even under unfavorable historical scenarios. In contrast, the upper bound expands rapidly, reflecting asymmetric upside from periods of strong BTC and GLD performance. The widening spread captures uncertainty driven by higher-volatility components, while the overall distribution remains centered on positive growth. Overall, the forecast points to stable median performance, mild downside risk, and large upside potential, consistent with the fund’s historical behavior.
+
+```{r 17-forecastplot, echo = FALSE, results='hide', fig.cap = "Bootstrapped 3-Year Forecast: Tangency Portfolio", fig.width = 5, fig.height = 3.5}
+set.seed(123)
+
+B <- 5000
+n <- nrow(R_new)
+
+boot_means <- replicate(B, {
+  boot_sample <- sample(R_new, n, replace = TRUE)
+  total <- prod(1 + boot_sample) - 1
+  yrs <- n / 12
+  (1 + total)^(1/yrs) - 1
+})
+
+ci_95 <- quantile(boot_means, probs = c(0.025, 0.975))
+ci_95
+
+library(lubridate)
+
+future_months <- 36
+
+# last date in your series
+start_date <- last(index(R_new))
+
+# start forecasting from next month
+dates_future <- seq(from = start_date %m+% months(1),
+                    by = "month",
+                    length.out = future_months)
+
+set.seed(123)
+B <- 5000
+
+boot_future <- matrix(NA, nrow = future_months, ncol = B)
+for (b in 1:B) {
+  boot_future[, b] <- sample(as.numeric(R_new), future_months, replace = TRUE)
+}
+
+boot_equity <- apply(boot_future, 2, function(x) cumprod(1 + x))
+
+eq_median <- apply(boot_equity, 1, median)
+eq_low    <- apply(boot_equity, 1, quantile, probs = 0.025)
+eq_high   <- apply(boot_equity, 1, quantile, probs = 0.975)
+
+boot_xts <- xts(cbind(eq_low, eq_median, eq_high), order.by = dates_future)
+colnames(boot_xts) <- c("Lower_95", "Median", "Upper_95")
+
+chart.TimeSeries(
+  boot_xts,
+  legend.loc = "topleft",
+  ylab = "Forecasted Growth of $1"
+)
+boot_ci <- quantile(boot_means, c(0.025, 0.5, 0.975))
+
+
+```
+
+
+# Conclusion
+
+The Resilient Growth Opportunities Fund is designed as a diversified, multi-asset strategy intended to perform across a wide range of macroeconomic environments. By combining different kinds of assets under a constrained optimization framework, the fund seeks to balance long-term growth potential with resilience to regime shifts.
+
+Historical analysis and backtesting suggest that this structure allows the portfolio to participate meaningfully in periods of economic expansion while mitigating risk through diversification, defensive assets, and controlled exposure to higher-volatility return drivers. While the strategy does not avoid drawdowns entirely, its return profile reflects an emphasis on recovery dynamics, adaptive rebalancing, and exposure to multiple independent sources of risk premia rather than reliance on a single dominant factor.
+
+Risk analysis highlights the importance of disciplined constraints, particularly in managing concentration and volatility associated with equities and digital assets. Complementary risk measures and distributional diagnostics further underscore that diversification meaningfully alters the portfolio’s risk characteristics relative to traditional equity-dominated strategies, even as uncertainty and tail risk remain inherent to financial markets. While future outcomes are inherently uncertain, the framework provides a coherent and disciplined foundation for pursuing long-term, risk-adjusted returns in an evolving macroeconomic landscape.
+
+
+
+
+\newpage
+# Appendix
+
+
+
+
+```{r qq-portfolio, fig.cap="QQ-Plot of Portfolio Returns",  fig.width=5, fig.height=4}
+
+PerformanceAnalytics:::chart.QQPlot(
+  R_new,
+  main = "Portfolio Returns QQ-Plot"
+)
+```
+
+```{r jb-portfolio}
+library(tseries)
+
+jb_portfolio <- data.frame(
+  JB_Statistic = jarque.bera.test(R_new)$statistic,
+  JB_pvalue    = jarque.bera.test(R_new)$p.value
+)
+
+knitr::kable(
+  jb_portfolio,
+  caption = "Jarque–Bera Normality Test for Portfolio Returns"
+)
+
+
+
+```
+
+These results suggest that portfolio returns are relatively normally distributed. Thus, our assumption of normality is reasonable at the portfolio level.
+
+### Cross-Asset Relationships
+```{r corrplot, echo=FALSE, fig.cap = "Correlation Plot of 5 assets", fig.width=7, fig.width = 4.5}
+corr_mat <- cor(returns)
+
+corrplot(corr_mat, method="color",
+type="upper",
+addCoef.col = "black",
+number.cex = .6,
+tl.cex = .8,
+tl.col = "black"
+
+)
+```
+
+Equities (JPM, XOM, EEM) are moderately correlated with one another.
+GLD exhibits negative to near-zero correlations with risk assets, providing diversification and downside protection.
+
+BTC has low correlation with all assets, behaving as an independent macro-liquidity asset rather than a traditional risk factor.
+These relationships explain the optimizer’s heavy preference toward GLD and BTC in the unconstrained tangency solution — both lower the portfolio’s effective covariance while improving return.
+
+
+
+
