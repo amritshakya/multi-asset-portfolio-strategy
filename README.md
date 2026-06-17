@@ -1,100 +1,90 @@
 # Resilient Growth Opportunities Fund
 
-This repository contains a quantitative finance project that designs, analyzes, and backtests a multi-asset portfolio strategy called the **Resilient Growth Opportunities Fund**.
+### Multi-Asset Portfolio Strategy
 
-The project applies constrained mean-variance optimization, portfolio risk analysis, benchmark comparison, risk budgeting, and forecasting to evaluate a strategy built across U.S. equities, emerging markets, real assets, energy, and a capped digital asset allocation.
+A quantitative portfolio-construction project examining how constrained optimization, diversification, and risk attribution can be used to combine traditional and alternative assets.
 
-## Project Overview
+The strategy allocates across U.S. financials, emerging markets, energy, gold, and Bitcoin, and evaluates historical performance relative to ACWI, AOR, and SPY.
 
-The Resilient Growth Opportunities Fund is designed to pursue long-term risk-adjusted returns across changing macroeconomic environments.
+## Strategy Overview
 
-The portfolio combines:
+The portfolio was designed to pursue long-term growth while maintaining exposure to assets with different macroeconomic sensitivities.
 
-- **JPM** – U.S. financials and cyclical growth exposure
-- **GLD** – defensive real asset exposure
-- **XOM** – energy and commodity-cycle exposure
-- **EEM** – emerging markets equity exposure
-- **BTC-USD** – capped digital asset exposure for convex upside
+| Asset                                     | Portfolio Role                                   | Weight |
+| ----------------------------------------- | ------------------------------------------------ | -----: |
+| JPMorgan Chase (`JPM`)                    | Primary U.S. equity and cyclical-growth exposure | 57.85% |
+| SPDR Gold Shares (`GLD`)                  | Defensive real-asset and diversification sleeve  | 27.15% |
+| ExxonMobil (`XOM`)                        | Energy and commodity-cycle exposure              |  5.00% |
+| iShares MSCI Emerging Markets ETF (`EEM`) | Geographic and emerging-markets diversification  |  5.00% |
+| Bitcoin (`BTC-USD`)                       | Capped alternative-asset exposure                |  5.00% |
 
-The project begins with a theoretical Markowitz tangency portfolio and then applies practical constraints to create a more stable, long-only, implementable allocation.
+The portfolio is long-only and fully invested. Minimum allocations preserve exposure across the selected asset universe, while Bitcoin is capped at 5% to limit the effect of its substantially higher volatility.
 
-## Final Portfolio
+## Historical Performance
 
-The final constrained allocation is:
+![Historical backtest of the strategy relative to ACWI, AOR, and SPY](outputs/backtest-equity-curve.png)
 
-- JPMorgan Chase & Co. (**JPM**) – 57.85%
-- SPDR Gold Shares (**GLD**) – 27.15%
-- ExxonMobil (**XOM**) – 5.00%
-- iShares MSCI Emerging Markets ETF (**EEM**) – 5.00%
-- Bitcoin (**BTC-USD**) – 5.00%
+*Illustrative historical growth of $1 using rolling portfolio re-optimization, compared with ACWI, AOR, and SPY over the available backtest period.*
 
-The allocation reflects a balance between growth, diversification, defensive assets, and controlled exposure to high-volatility return drivers.
+## Key Findings
 
-## Key Questions
+**Return potential came with meaningful concentration risk.** JPM received the largest capital allocation and accounted for the majority of estimated portfolio risk, highlighting that equal asset count does not imply equal risk diversification.
 
-- How can a multi-asset portfolio be constructed using constrained mean-variance optimization?
-- How do practical constraints change the theoretical tangency portfolio?
-- How does the strategy perform relative to ACWI, AOR, and SPY?
-- Which assets drive portfolio risk, return, and drawdowns?
-- How do rolling weights, rolling Sharpe ratios, and backtests change across macro regimes?
-- How can risk metrics such as drawdown, expected shortfall, and risk contribution improve portfolio interpretation?
+**Gold provided capital-efficient diversification.** GLD represented more than one-quarter of the portfolio but contributed relatively little to total portfolio volatility because of its lower volatility and low correlation with equities.
 
-## Methods
+**A small Bitcoin allocation still mattered.** Despite its 5% cap, Bitcoin made a material contribution to portfolio risk and return, demonstrating how high-volatility assets can influence portfolio behavior even at modest weights.
 
-The project includes:
+**The strategy should not be interpreted as a low-risk balanced portfolio.** It is better characterized as a concentrated, growth-oriented multi-asset strategy with defensive and alternative sleeves.
 
-- Constrained mean-variance optimization
-- Efficient frontier analysis
-- Historical return and volatility analysis
-- Benchmark comparison against ACWI, AOR, and SPY
-- Downside risk analysis
-- Expected shortfall
-- Maximum drawdown analysis
-- Risk budgeting and percent contribution to risk
-- Rolling mean, volatility, and Sharpe ratio analysis
-- Backtested portfolio weights
-- CAPM regression
-- Bootstrapped 3-year forecast
-- Correlation and distributional diagnostics
+## Analytical Framework
 
-## Repository Structure
+The project uses monthly market data from 2016 through 2025 and applies:
 
-    portfolio-risk-modeling/
-    ├── README.md
-    ├── executive-summary.md
-    ├── paper/
-    │   └── final-paper.pdf
-    ├── code/
-    ├── outputs/
-    └── data/
-        └── README.md
+* Constrained mean-variance optimization
+* Efficient-frontier analysis
+* Benchmark comparison against ACWI, AOR, and SPY
+* Maximum drawdown and downside-risk analysis
+* Marginal and percentage contribution to portfolio risk
+* Rolling return, volatility, and Sharpe-ratio analysis
+* Rolling portfolio re-optimization
+* CAPM regression
+* Historical bootstrap scenarios
+* Correlation and return-distribution diagnostics
 
-## Files
+## Investment Interpretation
 
-- `paper/final-paper.pdf` – Full research paper
-- `executive-summary.md` – Summary of the strategy, methods, and main findings
-- `data/` – Notes on data sources and availability
-- `code/` – Supporting analysis files, to be added or cleaned
-- `outputs/` – Charts and exhibits, to be added if available
+The project illustrates both the usefulness and limitations of quantitative optimization.
 
-## Skills Demonstrated
+Optimization provides a disciplined framework for combining assets and evaluating trade-offs, but the resulting portfolio remains sensitive to:
 
-- Portfolio construction
-- Quantitative finance
-- Mean-variance optimization
-- Risk and return analysis
-- Benchmarking and backtesting
-- Risk budgeting
-- Financial time series analysis
-- Investment research communication
-- Technical writing
+* Historical return and covariance estimates
+* The selected asset universe
+* Position constraints
+* The chosen estimation window
+* Concentration in individual securities
+* The unusually strong historical performance of Bitcoin
 
-## Status
+The portfolio should therefore be evaluated through risk contribution, drawdowns, weight stability, and economic judgment—not only headline returns or Sharpe ratios.
 
-The full research paper is included first. Supporting code, charts, and cleaned data documentation may be added as the project is further organized.
+## Repository Contents
 
-This repository is intended as a professional work sample for investment research, portfolio analytics, asset allocation, and financial data analysis roles.
+* [`paper/final-paper.pdf`](paper/final-paper.pdf) — Full research paper and exhibits
+* [`executive-summary.md`](executive-summary.md) — Concise investment-oriented summary
+* [`archive/original-final.Rmd`](archive/original-final.Rmd) — Original executable R Markdown analysis
+* [`data/README.md`](data/README.md) — Notes on data sources and availability
+
+## Potential Extensions
+
+Future development could include:
+
+* Explicit maximum-position constraints
+* Equal-weight, minimum-variance, and risk-parity comparisons
+* Transaction costs and portfolio-turnover analysis
+* Longer estimation windows and covariance shrinkage
+* Walk-forward validation with explicitly lagged weights
+* Broader exposure through diversified asset-class ETFs
+* Historical regime and stress-period analysis
 
 ## Disclaimer
 
-This project was developed for academic and professional portfolio purposes. It is not investment advice or a recommendation to buy or sell any security.
+This project was developed for academic and professional portfolio purposes. Historical analysis is not a live investment track record, and the results should not be interpreted as investment advice or a recommendation to buy or sell any security.
