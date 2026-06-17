@@ -1,92 +1,55 @@
 # Executive Summary
 
-## Project
+## Resilient Growth Opportunities Fund
 
-**The Resilient Growth Opportunities Fund** is a quantitative finance project focused on building and evaluating a diversified multi-asset portfolio using constrained mean-variance optimization.
+I built this five-asset strategy to examine how constrained portfolio optimization could combine growth, defensive, commodity, international, and alternative exposures within one allocation.
 
-The strategy combines U.S. financial equities, emerging markets, gold, energy, and a capped Bitcoin allocation to create a portfolio with multiple return drivers across different macroeconomic regimes.
-
-## Objective
-
-The goal of the project is to design a portfolio that balances long-term growth potential with macro resilience, diversification, and disciplined risk control.
-
-Rather than simply maximizing the unconstrained Sharpe ratio, the project applies practical constraints to produce a more stable and implementable allocation.
+The strategy invests in JPMorgan Chase, gold, ExxonMobil, emerging-markets equities, and Bitcoin. Historical performance is evaluated against ACWI, AOR, and SPY using monthly data from 2016 through 2025.
 
 ## Portfolio Construction
 
-The final portfolio uses five assets:
+The portfolio is long-only and fully invested, with minimum allocations across the selected assets and a 5% cap on Bitcoin.
 
-- **JPM** – primary U.S. equity and financials growth anchor
-- **GLD** – defensive real asset exposure
-- **XOM** – energy and commodity-cycle exposure
-- **EEM** – emerging markets diversification
-- **BTC-USD** – capped convex upside exposure
+| Asset                                     | Weight | Role in the Strategy                        |
+| ----------------------------------------- | -----: | ------------------------------------------- |
+| JPMorgan Chase (`JPM`)                    | 57.85% | U.S. financials and primary growth exposure |
+| SPDR Gold Shares (`GLD`)                  | 27.15% | Defensive real-asset exposure               |
+| ExxonMobil (`XOM`)                        |  5.00% | Energy and commodity-cycle exposure         |
+| iShares MSCI Emerging Markets ETF (`EEM`) |  5.00% | Emerging-markets diversification            |
+| Bitcoin (`BTC-USD`)                       |  5.00% | Capped alternative-asset exposure           |
 
-The final constrained allocation is:
+Given the constraints and historical inputs, the model allocated most of the remaining capital to JPM and GLD, while XOM, EEM, and Bitcoin remained at their minimum permitted weights.
 
-- **JPM:** 57.85%
-- **GLD:** 27.15%
-- **XOM:** 5.00%
-- **EEM:** 5.00%
-- **BTC-USD:** 5.00%
+## Principal Findings
 
-The constraints include long-only positions, minimum allocations to traditional assets, a strict 5% Bitcoin cap, and full investment of portfolio capital.
+**The portfolio is more concentrated than its five holdings suggest.** JPM represents the majority of invested capital and an even larger share of estimated portfolio risk. Diversification by asset count and diversification by risk source are not the same thing.
 
-## Methods Used
+**Gold added diversification without contributing much portfolio volatility.** Its large capital allocation was accompanied by a relatively small risk contribution because of its low correlation with the portfolio’s equity positions.
 
-The analysis includes:
+**Bitcoin remained influential at a 5% weight.** Its high volatility meant that a small allocation still had a noticeable effect on both portfolio risk and historical return.
 
-- Constrained mean-variance optimization
-- Efficient frontier analysis
-- Historical performance comparison
-- Benchmarking against ACWI, AOR, and SPY
-- Maximum drawdown analysis
-- Expected shortfall and downside risk metrics
-- Portfolio risk budgeting
-- Percent contribution to risk
-- Rolling performance analysis
-- Backtested portfolio weights
-- CAPM regression
-- Bootstrapped 3-year forecast
-- Correlation and normality diagnostics
+The result is not a conventional low-risk balanced portfolio. It is a concentrated, growth-oriented strategy with defensive and alternative sleeves.
 
-## Main Findings
+## Interpretation and Limitations
 
-The fund produced strong historical performance over the sample period, with higher long-term returns than ACWI, AOR, and SPY, though with meaningfully higher volatility and drawdowns.
+The allocation is sensitive to:
 
-The analysis shows that:
+* Historical expected-return estimates
+* Covariance and correlation assumptions
+* The selected asset universe
+* Minimum- and maximum-weight constraints
+* The estimation window
+* Strong historical Bitcoin returns
+* Concentration in a single U.S. financial stock
 
-- JPM acts as the main return engine but also dominates portfolio risk.
-- GLD provides meaningful diversification because of its low volatility and favorable correlation profile.
-- BTC contributes significant upside potential, but even a 5% allocation creates a material risk contribution.
-- XOM and EEM add incremental macro and geographic diversification.
-- The portfolio benefits from exposure to multiple return drivers rather than relying only on traditional U.S. equity beta.
+The portfolio should not be assessed solely through historical return or Sharpe ratio. Drawdowns, risk contribution, allocation stability, and the reason each position belongs in the portfolio are equally important.
 
-## Risk Interpretation
+The analysis applies constrained mean-variance optimization, rolling re-optimization, risk attribution, drawdown analysis, CAPM regression, and historical bootstrap scenarios.
 
-The project highlights the importance of looking beyond headline returns.
+## Conclusion
 
-Although the strategy achieved strong historical returns, it also experienced a large maximum drawdown and a high annualized standard deviation. This makes the strategy better understood as a high-growth, multi-asset portfolio with defensive components rather than a low-risk balanced portfolio.
+The strategy shows how assets that respond differently across market environments can improve a portfolio while still leaving it concentrated in a small number of risk drivers.
 
-Risk budgeting shows that portfolio risk is not distributed in the same proportion as capital weights. JPM receives the largest allocation and contributes the majority of total portfolio risk, while GLD receives a large allocation but contributes relatively little to total risk. BTC remains a meaningful risk factor despite its small weight.
+What the analysis makes clear is not the specific allocation, but the gap between holding several assets and achieving genuine risk diversification. Quantitative optimization can identify trade-offs, but the final portfolio still requires sensible constraints, robustness checks, and investment judgment.
 
-## Investment Interpretation
-
-The portfolio is designed around the idea that resilience does not mean avoiding volatility entirely. Instead, resilience comes from combining assets with different macro sensitivities, controlling exposure to extreme volatility, and maintaining the ability to recover across changing regimes.
-
-The project demonstrates how quantitative optimization can support investment judgment, but also why constraints, interpretation, and practical risk controls are essential.
-
-## Relevance
-
-This project is relevant to investment research, portfolio analytics, asset allocation, and quantitative finance-adjacent roles because it combines:
-
-- Financial theory
-- Empirical analysis
-- Portfolio construction
-- Risk interpretation
-- Benchmarking
-- Written investment communication
-
-## Main File
-
-- `paper/final-paper.pdf` – Full research paper
+For the complete methodology and exhibits, see [`paper/final-paper.pdf`](paper/final-paper.pdf).
