@@ -411,6 +411,53 @@ risk_budget <- data.frame(
 
 kable(risk_budget, caption= "Portfolio Risk Budgeting")
 
+dir.create("outputs/tables", recursive = TRUE, showWarnings = FALSE)
+dir.create("outputs/figures", recursive = TRUE, showWarnings = FALSE)
+
+write.csv(
+  risk_budget,
+  "outputs/tables/risk-budget.csv",
+  row.names = FALSE
+)
+
+risk_budget_long <- risk_budget %>%
+  select(Asset, Weight, PCR) %>%
+  pivot_longer(
+    cols = c(Weight, PCR),
+    names_to = "Metric",
+    values_to = "Value"
+  ) %>%
+  mutate(
+    Metric = recode(
+      Metric,
+      Weight = "Capital Weight",
+      PCR = "Risk Contribution"
+    )
+  )
+
+risk_contribution_plot <- ggplot(
+  risk_budget_long,
+  aes(x = Asset, y = Value, fill = Metric)
+) +
+  geom_col(position = "dodge") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  labs(
+    title = "Capital Weight vs. Risk Contribution",
+    subtitle = "Corrected constrained portfolio, monthly returns annualized where applicable",
+    x = NULL,
+    y = "Share of Portfolio",
+    fill = NULL
+  ) +
+  theme_minimal()
+
+ggsave(
+  "outputs/figures/risk-contribution.png",
+  risk_contribution_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
 
 par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
 
