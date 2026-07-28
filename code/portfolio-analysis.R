@@ -93,7 +93,7 @@ max_w <- rep(1.0,  length(assets))   # general max
 # Now adjust BTC constraint:
 btc_index <- which(assets == "BTC-USD")
 max_w[btc_index] <- 0.05  # BTC cannot exceed 5%
-pspec <- add.constraint(pspec, 
+pspec <- add.constraint(pspec,
                         type = "box",
                         min = min_w,
                         max = max_w)
@@ -237,9 +237,9 @@ perf_table <- data.frame(
   check.names = FALSE
 )
 
-kable(perf_table, 
-      caption = "Performance Summary: Fund vs Benchmarks", 
-      booktabs = TRUE, 
+kable(perf_table,
+      caption = "Performance Summary: Fund vs Benchmarks",
+      booktabs = TRUE,
       align = c("l","c","c","c","c"))
 
 
@@ -282,10 +282,10 @@ library(knitr)
 
 asset_metadata <- data.frame(
   Ticker = c("JPM", "GLD", "XOM", "EEM", "BTC-USD"),
-  Asset = c("JPMorgan Chase & Co.", "SPDR Gold Shares", "ExxonMobil", 
+  Asset = c("JPMorgan Chase & Co.", "SPDR Gold Shares", "ExxonMobil",
             "iShares MSCI Emerging Markets", "Bitcoin"),
   Sector = c("U.S. Financials (Equity)", "Real Assets / Commodities",
-             "Energy / Oil & Gas", "Emerging Markets Equity", 
+             "Energy / Oil & Gas", "Emerging Markets Equity",
              "Digital Asset")
 )
 
@@ -298,7 +298,7 @@ asset_table <- asset_metadata %>%
 knitr::kable(asset_table,
              caption = " Fund Asset Summary")
 
-  
+
 #Plot Attributes
 asset_names <- colnames(returns)
 assetname.val <- 1
@@ -307,17 +307,17 @@ axis.val <- 1
 
 #Plotting the Assets
 plot(sig.val,mu.val, ylim=c(0,1), xlim=c(0,1), ylab=expression(mu[p]),
-     xlab=expression(sigma[p]), pch=16, col="blue", cex=dot.val, cex.lab=axis.val)  
+     xlab=expression(sigma[p]), pch=16, col="blue", cex=dot.val, cex.lab=axis.val)
 text(sig.val, mu.val, labels=asset_names, pos=4, cex = assetname.val)
 
 #Plotting risk free
-points(0, rf_annual, pch=16, col="red", cex=dot.val)  
+points(0, rf_annual, pch=16, col="red", cex=dot.val)
 text(0.001, rf_annual, labels=expression(r[f]), pos=1, cex = assetname.val)
 
 #efficient frontier from introfinR
 ef <- efficient.frontier(mu.val, cov.val, nport = 50)
 
-lines (ef$sd,ef$er, 
+lines (ef$sd,ef$er,
      col = "purple",
      lwd = 2)
 
@@ -337,10 +337,10 @@ text(sd_AOR, er_AOR, "AOR", pos = 1)
 
 
 
-# 1. Annual return and SD 
+# 1. Annual return and SD
 ann_table <- table.AnnualizedReturns(R_new, geometric = TRUE)
 
-# 2. SemiDeviation 
+# 2. SemiDeviation
 semi_m <- SemiDeviation(R_new)
 semi_annual <- semi_m * sqrt(12)
 
@@ -547,7 +547,7 @@ sharpePlot_noSE <- merge(roll.sharpe, R_new)
 plot.zoo(
   sharpePlot_noSE,
   plot.type = "single",
-  
+
   ylab = "Sharpe Ratio",
   col = c("purple", "lightgray"),
   lwd = c(2, 1),
@@ -572,7 +572,7 @@ legend(
 
 # 24-month rolling backtest for your portfolio
 backtest_portfolio <- optimize.portfolio.rebalancing(
-  R               = returns,       
+  R               = returns,
   portfolio       = pspec,
   optimize_method = "ROI",
   rebalance_on    = "months",
@@ -615,7 +615,7 @@ bp <- barplot(
   space = 0,
   width = 1,
   axes = FALSE,
- 
+
   ylab = "Portfolio Weight"
 )
 
@@ -697,9 +697,9 @@ colnames(capm_data) <- c("Fund", "Market")
 fit <- lm(Fund ~ Market, data = capm_data)
 
 
-beta <- coef(fit)[2] 
-alpha_monthly <- coef(fit)[1] 
-alpha_annual <- (1 + alpha_monthly)^12 - 1 #  annualization 
+beta <- coef(fit)[2]
+alpha_monthly <- coef(fit)[1]
+alpha_annual <- (1 + alpha_monthly)^12 - 1 #  annualization
 R2 <- summary(fit)$r.squared
 capm_table <- data.frame(
   Metric = c("Alpha (Annualized)", "Beta", "R-squared"),
