@@ -8,33 +8,39 @@ The strategy allocates across U.S. financials, emerging markets, energy, gold, a
 
 ## Strategy Overview
 
-The portfolio was designed to pursue long-term growth while maintaining exposure to assets with different macroeconomic sensitivities.
+The portfolio was designed to pursue long-term growth while maintaining exposure to assets with different macroeconomic sensitivities. After standardizing the return methodology and fixing the sample at January 2016 through December 2025, the constrained static optimization produced the following allocation:
 
 | Asset                                     | Portfolio Role                                   | Weight |
 | ----------------------------------------- | ------------------------------------------------ | -----: |
-| JPMorgan Chase (`JPM`)                    | Primary U.S. equity and cyclical-growth exposure | 57.85% |
-| SPDR Gold Shares (`GLD`)                  | Defensive real-asset and diversification sleeve  | 27.15% |
+| JPMorgan Chase (`JPM`)                    | Primary U.S. equity and cyclical-growth exposure | 68.10% |
+| SPDR Gold Shares (`GLD`)                  | Defensive real-asset and diversification sleeve  | 16.90% |
 | ExxonMobil (`XOM`)                        | Energy and commodity-cycle exposure              |  5.00% |
 | iShares MSCI Emerging Markets ETF (`EEM`) | Geographic and emerging-markets diversification  |  5.00% |
 | Bitcoin (`BTC-USD`)                       | Capped alternative-asset exposure                |  5.00% |
 
-The portfolio is long-only and fully invested. Minimum allocations preserve exposure across the selected asset universe, while Bitcoin is capped at 5% to limit the effect of its substantially higher volatility.
+The portfolio is long-only and fully invested. Minimum allocations preserve exposure across the selected universe, while Bitcoin is capped at 5% to limit the effect of its substantially higher volatility.
 
-## Historical Performance
+## Risk Attribution
 
-![Historical backtest of the strategy relative to ACWI, AOR, and SPY](outputs/backtest-equity-curve.png)
+![Capital weight compared with portfolio risk contribution](outputs/figures/risk-contribution.png)
 
-*Illustrative historical growth of $1 using rolling portfolio re-optimization, compared with ACWI, AOR, and SPY over the available backtest period.*
+The allocation appears diversified across five holdings, but the underlying risk is highly concentrated. JPM represents 68.1% of invested capital and approximately 83.8% of estimated portfolio risk. Bitcoin contributes about 9.0% of risk despite its 5% allocation, while GLD represents 16.9% of capital but contributes less than 1% of estimated volatility.
+
+## Historical Backtest
+
+![Historical backtest of the original strategy relative to ACWI, AOR, and SPY](outputs/backtest-equity-curve.png)
+
+*Historical growth-of-$1 chart preserved from the original academic report. The archived report and source analysis are retained for transparency; corrected static optimization results are reported separately above.*
 
 ## Key Findings
 
-**Return potential came with meaningful concentration risk.** JPM received the largest capital allocation and accounted for the majority of estimated portfolio risk, highlighting that equal asset count does not imply equal risk diversification.
+**Historical optimization produced substantial concentration.** JPM received more than two-thirds of the corrected static allocation and accounted for an even larger share of estimated portfolio risk. Holding five assets did not create five independent sources of risk.
 
-**Gold provided capital-efficient diversification.** GLD represented more than one-quarter of the portfolio but contributed relatively little to total portfolio volatility because of its lower volatility and low correlation with equities.
+**Gold provided capital-efficient diversification.** GLD received 16.9% of capital but contributed relatively little to total portfolio volatility because of its lower volatility and covariance with the other holdings.
 
-**A small Bitcoin allocation still mattered.** Despite its 5% cap, Bitcoin made a material contribution to portfolio risk and return, demonstrating how high-volatility assets can influence portfolio behavior even at modest weights.
+**A small Bitcoin allocation still mattered.** Despite its 5% cap, Bitcoin contributed approximately 9% of estimated portfolio risk, demonstrating how a high-volatility asset can materially affect portfolio behavior at a modest weight.
 
-**The strategy should not be interpreted as a low-risk balanced portfolio.** It is better characterized as a concentrated, growth-oriented multi-asset strategy with defensive and alternative sleeves.
+**The strategy is not a low-risk balanced portfolio.** It is better characterized as a concentrated, growth-oriented allocation with defensive and alternative sleeves.
 
 ## Analytical Framework
 
