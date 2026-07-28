@@ -420,7 +420,12 @@ write.csv(
   row.names = FALSE
 )
 
+asset_order <- risk_budget %>%
+  arrange(desc(PCR)) %>%
+  pull(Asset)
+
 risk_budget_long <- risk_budget %>%
+  mutate(Asset = factor(Asset, levels = asset_order)) %>%
   select(Asset, Weight, PCR) %>%
   pivot_longer(
     cols = c(Weight, PCR),
@@ -443,7 +448,7 @@ risk_contribution_plot <- ggplot(
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   labs(
     title = "Capital Weight vs. Risk Contribution",
-    subtitle = "Corrected constrained portfolio, monthly returns annualized where applicable",
+    subtitle = "JPM accounts for most portfolio risk despite a five-asset allocation",
     x = NULL,
     y = "Share of Portfolio",
     fill = NULL
