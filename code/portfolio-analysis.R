@@ -280,15 +280,20 @@ knitr::kable(
 
 library(knitr)
 
-asset_table <- data.frame(
+asset_metadata <- data.frame(
+  Ticker = c("JPM", "GLD", "XOM", "EEM", "BTC-USD"),
   Asset = c("JPMorgan Chase & Co.", "SPDR Gold Shares", "ExxonMobil", 
             "iShares MSCI Emerging Markets", "Bitcoin"),
-  Ticker = c("JPM", "GLD", "XOM", "EEM", "BTC-USD"),
   Sector = c("U.S. Financials (Equity)", "Real Assets / Commodities",
              "Energy / Oil & Gas", "Emerging Markets Equity", 
-             "Digital Asset"),
-  Weight = c("57.85%", "27.15%", "5%", "5%", "5%")
+             "Digital Asset")
 )
+
+asset_table <- asset_metadata %>%
+  mutate(
+    Weight = scales::percent(new_weights[Ticker], accuracy = 0.01)
+  ) %>%
+  select(Asset, Ticker, Sector, Weight)
 
 knitr::kable(asset_table,
              caption = " Fund Asset Summary")
