@@ -3,3 +3,11 @@
 .RData
 
 Rplots.pdf
+
+# Stage 1: cached raw downloads and the full run snapshot are
+# reproducible from scripts/run_stage1.R and are not committed, per the
+# same policy as data/README.md ("Raw price data ... not currently
+# committed to the repository"). Tables/figures under outputs/rebuilt/
+# ARE committed as the audit trail.
+data/cache/
+outputs/rebuilt/stage1_run.rds

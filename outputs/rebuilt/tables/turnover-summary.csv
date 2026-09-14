@@ -1,0 +1,3 @@
+"portfolio","n_rebalances_used","initial_funding_gross_traded_notional","initial_funding_one_way_turnover","avg_monthly_gross_traded_notional","avg_monthly_one_way_turnover","max_monthly_gross_traded_notional","max_monthly_one_way_turnover","annualized_one_way_turnover_x12","annualization_convention"
+"Constrained MVO",94,0.999999999999995,0.499999999999998,0.156556432952645,0.0782782164763223,0.840662560843345,0.420331280421673,0.939338597715868,"avg monthly one-way turnover x 12 (steady-state months only, initial funding trade excluded)"
+"Naive 1/N",94,1,0.5,0.0593391241354623,0.0296695620677312,0.198898489060533,0.0994492445302664,0.356034744812774,"avg monthly one-way turnover x 12 (steady-state months only, initial funding trade excluded)"
