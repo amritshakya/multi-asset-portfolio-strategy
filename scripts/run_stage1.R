@@ -7,7 +7,7 @@
 #
 # Produces every table/figure under outputs/rebuilt/ and prints a summary
 # to the console. Does not modify archive/original-final.Rmd,
-# paper/final-paper.pdf, or code/portfolio-analysis.R.
+# archive/final-paper.pdf, or code/portfolio-analysis.R.
 
 repo_root <- getwd()
 stopifnot(basename(repo_root) == "multi-asset-portfolio-strategy" || file.exists("R/data.R"))

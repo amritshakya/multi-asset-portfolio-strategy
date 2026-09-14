@@ -25,7 +25,7 @@ implementation ("Stage 1"), documented in `docs/rebuilt-methodology.md`.
 
 ## Research question / case-study framing
 
-Stage 1 is a bounded empirical case study of:
+Stage 1 is a case study of:
 
 - estimation error in sample-based mean-variance optimization,
 - look-ahead bias and what a correct walk-forward evaluation changes,
@@ -79,16 +79,19 @@ consistent monthly rate. Source: `outputs/rebuilt/tables/performance-summary.csv
 | ACWI | 10.2% | 15.6% | 0.42 | −25.7% |
 | AOR | 6.9% | 10.8% | 0.27 | −20.8% |
 
+Constrained MVO averaged 7.8% one-way monthly turnover versus 3.0% for
+naive 1/N, with MVO's maximum one-way monthly turnover reaching 42%
+(`outputs/rebuilt/tables/turnover-summary.csv`).
+
 ## MVO vs. 1/N interpretation
 
-Reported exactly as pre-committed, regardless of outcome: naive 1/N produced
-a very slightly *higher* raw CAGR than constrained MVO (19.6% vs. 19.1%
-gross), while constrained MVO produced a materially smaller drawdown
-(−15.8% vs. −25.7%) and a modestly higher Sharpe and Calmar ratio (1.21 vs.
-0.76; `outputs/rebuilt/tables/performance-summary.csv`). **Neither method
-dominates the other on every metric.** This is one five-asset universe, one
-~8-year sample, one estimation specification — see "Research context" below
-for why this cannot be generalized.
+In this sample, naive 1/N produced a slightly higher CAGR than constrained
+MVO (19.6% vs. 19.1%), while MVO had a smaller maximum drawdown (-15.8% vs.
+-25.7%), a marginally higher Sharpe ratio (0.77 vs. 0.75), and a higher
+Calmar ratio (1.21 vs. 0.76). Neither approach dominated across all metrics.
+This is one five-asset universe, one ~8-year sample, one estimation
+specification — see "Research context" below for why this cannot be
+generalized.
 
 ## Concentration and constraint-binding findings
 
@@ -110,9 +113,8 @@ Starting from the identical initial target allocation as the constrained
 MVO strategy but never trading again, the buy-and-hold portfolio's realized
 risk degrades materially over the same 95 periods: annualized volatility
 24.1% vs. 19.6%, and max drawdown −39.0% vs. −15.8%
-(`outputs/rebuilt/tables/performance-summary.csv`). This isolates, at a
-smaller and controlled scale, the exact drift mechanism that caused the
-original project's BTC allocation to run from 5% to ~68.5% of the book.
+(`outputs/rebuilt/tables/performance-summary.csv`). This shows how an
+unrebalanced portfolio can drift far from its original constraints.
 
 ## Repository structure
 
@@ -126,8 +128,9 @@ original project's BTC allocation to run from 5% to ~68.5% of the book.
 | `data/README.md`, `data/cache/` | Data sourcing notes; local download cache (not committed). |
 
 **Project history (original academic project, preserved unmodified):**
-`archive/original-final.Rmd`, `paper/final-paper.pdf`, and
+`archive/original-final.Rmd`, `archive/final-paper.pdf`, and
 `code/portfolio-analysis.R` are kept in the repository for reference only.
+See `archive/README.md` for a short note on what these files are.
 Their charts, allocations, and headline numbers (e.g. a 68.1% JPM weight, or
 the CAPM/efficient-frontier/bootstrap-forecast exhibits in the PDF) describe
 the **original, since-superseded implementation** and are not current
@@ -152,9 +155,12 @@ intramonth risk for the BTC sleeve); a genuinely small 24-month covariance
 estimation window (5 assets, 20 free parameters) that is measured as
 unstable rather than corrected with shrinkage; a risk-aversion coefficient
 (λ=1) inherited from the original project's undocumented package default,
-not a calibrated choice; no dependency version pinning; a single universe,
-single historical sample, and single estimation window. Full detail in
-`docs/rebuilt-methodology.md`.
+not a calibrated choice; Sharpe and Sortino currently use a constant 4.5%
+annual risk-free rate converted to monthly terms rather than a time-varying
+short-rate or T-bill series; replacing this assumption with point-in-time
+short-rate data is a future robustness check; no dependency version
+pinning; a single universe, single historical sample, and single estimation
+window. Full detail in `docs/rebuilt-methodology.md`.
 
 ## Research context
 
@@ -164,9 +170,9 @@ Review of Financial Studies**, 22(5), 1915–1953, evaluated 14 optimized
 portfolio-construction models across seven empirical datasets and found none
 consistently better than naive 1/N out of sample, in Sharpe ratio,
 certainty-equivalent return, or turnover — concluding that estimation error
-typically offsets optimization's theoretical gains. This repository's single
-five-asset, one-window comparison is one additional data point consistent
-with that documented problem, not a replication of its scope.
+typically offsets optimization's theoretical gains. The result here is
+consistent with that literature, but this project uses only one five-asset
+universe and one sample period.
 
 ## Future work
 

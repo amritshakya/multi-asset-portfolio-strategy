@@ -1,7 +1,7 @@
 # Methodology Audit
 
 This document records the forensic findings on the **original** implementation
-of this project (`archive/original-final.Rmd`, `paper/final-paper.pdf`, and
+of this project (`archive/original-final.Rmd`, `archive/final-paper.pdf`, and
 the "corrected" standalone script `code/portfolio-analysis.R`). It is a
 historical record, not a live spec — none of these three files were altered
 as part of this audit or the Stage 1 rebuild. The rebuild's own methodology
@@ -37,7 +37,7 @@ during the audit session that preceded Stage 1.
    assumption as if it were a monthly rate**, subtracting roughly 12x too
    much from monthly excess returns. Verified algebraically and numerically:
    this materially inflates the reported annualized alpha (0.429 in
-   `paper/final-paper.pdf`) relative to what a correctly unit-converted
+   `archive/final-paper.pdf`) relative to what a correctly unit-converted
    monthly risk-free rate produces (0.177, as computed by
    `code/portfolio-analysis.R`, which does convert correctly).
 
